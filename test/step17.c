@@ -11,6 +11,7 @@
 #include "icmp.h"
 
 #include "driver/loopback.h"
+#include "driver/ether_tap.h"
 
 #include "test.h"
 
@@ -48,6 +49,24 @@ setup(void)
         errorf("ip_iface_register() failure");
         return -1;
     }
+    dev = ether_tap_init(ETHER_TAP_NAME, ETHER_TAP_HW_ADDR);
+    if (!dev) {
+        errorf("ether_tap_init() failure");
+        return -1;
+    }
+    iface = ip_iface_alloc(ETHER_TAP_IP_ADDR, ETHER_TAP_NETMASK);
+    if (!iface) {
+        errorf("ip_iface_alloc() failure");
+        return -1;
+    }
+    if (ip_iface_register(dev, iface) == -1) {
+        errorf("ip_iface_register() failure");
+        return -1;
+    }
+    if (ip_route_set_default_gateway(iface, DEFAULT_GATEWAY) == -1) {
+        errorf("ip_route_set_default_gateway() failure");
+        return -1;
+    }
     if (net_run() == -1) {
         errorf("net_run() failure");
         return -1;
@@ -72,8 +91,8 @@ main(int argc, char *argv[])
         errorf("setup() failure");
         return -1;
     }
-    ip_addr_pton(LOOPBACK_IP_ADDR, &src);
-    dst = src;
+    src = IP_ADDR_ANY;
+    ip_addr_pton("8.8.8.8", &dst);
     id = getpid() % UINT16_MAX;
     while (!terminate) {
         if (icmp_output(ICMP_TYPE_ECHO, 0, hton32(id << 16 | ++seq), test_data + offset, sizeof(test_data) - offset, src, dst) == -1) {

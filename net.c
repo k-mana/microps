@@ -86,7 +86,7 @@ static int
 net_device_close(struct net_device *dev)
 {
     if (!NET_DEVICE_IS_UP(dev)) {
-        errorf("not opend, dev=%s", dev->name);
+        errorf("not opened, dev=%s", dev->name);
         return -1;
     }
     if (dev->ops->close) {
@@ -113,8 +113,8 @@ net_device_add_iface(struct net_device *dev, struct net_iface *iface)
             return -1;
         }
     }
-    iface->dev = dev;
     iface->next = dev->ifaces;
+    iface->dev = dev;
     dev->ifaces = iface;
     return 0;
 }
@@ -126,10 +126,10 @@ net_device_get_iface(struct net_device *dev, int family)
 
     for (entry = dev->ifaces; entry; entry = entry->next) {
         if (entry->family == family) {
-            return entry;
+            break;
         }
     }
-    return NULL;
+    return entry;
 }
 
 int
@@ -186,7 +186,7 @@ net_timer_register(struct timeval interval, void (*handler)(void))
     timer = memory_alloc(sizeof(*timer));
     if (!timer) {
         errorf("memory_alloc() failure");
-	return -1;
+        return -1;
     }
     timer->interval = interval;
     gettimeofday(&timer->last, NULL);
@@ -205,10 +205,10 @@ net_timer_handler(void)
 
     for (timer = timers; timer; timer = timer->next) {
         gettimeofday(&now, NULL);
-	timersub(&now, &timer->last, &diff);
-	if (timercmp(&timer->interval, &diff, <) != 0) { /* true (!0) of false (0) */
-		timer->handler();
-		timer->last = now;
+        timersub(&now, &timer->last, &diff);
+        if (timercmp(&timer->interval, &diff, <) != 0) { /* true (!0) or false (0) */
+            timer->handler();
+            timer->last = now;
         }
     }
     return 0;
@@ -230,13 +230,12 @@ net_input_handler(uint16_t type, const uint8_t *data, size_t len, struct net_dev
             entry->dev = dev;
             entry->len = len;
             memcpy(entry->data, data, len);
-            if (queue_push(&proto->queue, entry) == NULL) {
-                memory_free(entry);
+            if (!queue_push(&proto->queue, entry)) {
                 errorf("queue_push() failure");
+                memory_free(entry);
                 return -1;
             }
-            debugf("queue pushed (num:%u), device=%s, type=0x%04x, len=%zu",
-                    proto->queue.num, dev->name, type, len);
+            debugf("queue pushed (num:%u), dev=%s, type=0x%04x, len=%zu", proto->queue.num, dev->name, type, len);
             debugdump(data, len);
             intr_raise_irq(INTR_IRQ_SOFTIRQ);
             return 0;
@@ -258,7 +257,7 @@ net_softirq_handler(void)
             if (!entry) {
                 break;
             }
-            debugf("queue poped (num:%u), dev=%s, type=0x%04x, len=%zu", proto->queue.num, entry->dev->name, proto->type, entry->len);
+            debugf("queue popped (num:%u), dev=%s, type=0x%04x, len=%zu", proto->queue.num, entry->dev->name, proto->type, entry->len);
             debugdump(entry->data, entry->len);
             proto->handler(entry->data, entry->len, entry->dev);
             memory_free(entry);

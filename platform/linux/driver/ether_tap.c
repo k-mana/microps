@@ -46,7 +46,8 @@ ether_tap_addr(struct net_device *dev)
     }
     strncpy(ifr.ifr_name, PRIV(dev)->name, sizeof(ifr.ifr_name)-1);
     if (ioctl(soc, SIOCGIFHWADDR, &ifr) == -1) {
-        errorf("ioctl [SIOCGIFHWADDR]: %s, dev=%s", strerror(errno), dev->name);
+        errorf("ioctl(SIOCGIFHWADDR): %s, dev=%s", strerror(errno), dev->name);
+        close(soc);
         return -1;
     }
     memcpy(dev->addr, ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
@@ -69,7 +70,7 @@ ether_tap_open(struct net_device *dev)
     strncpy(ifr.ifr_name, tap->name, sizeof(ifr.ifr_name)-1);
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
     if (ioctl(tap->fd, TUNSETIFF, &ifr) == -1) {
-        errorf("ioctl [TUNSETIFF]: %s, dev=%s", strerror(errno), dev->name);
+        errorf("ioctl(TUNSETIFF): %s, dev=%s", strerror(errno), dev->name);
         close(tap->fd);
         return -1;
     }
@@ -104,8 +105,7 @@ ether_tap_open(struct net_device *dev)
 static int
 ether_tap_close(struct net_device *dev)
 {
-    close(PRIV(dev)->fd);
-    return 0;
+    return close(PRIV(dev)->fd);
 }
 
 static ssize_t

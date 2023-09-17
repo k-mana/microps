@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <signal.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "util.h"
@@ -8,8 +10,8 @@
 #include "ip.h"
 #include "icmp.h"
 
-#include "driver/ether_tap.h"
 #include "driver/loopback.h"
+#include "driver/ether_tap.h"
 
 #include "test.h"
 
@@ -81,7 +83,6 @@ main(int argc, char *argv[])
     uint16_t id, seq = 0;
     size_t offset = IP_HDR_SIZE_MIN + ICMP_HDR_SIZE;
 
-    signal(SIGINT, on_signal);
     if (setup() == -1) {
         errorf("setup() failure");
         return -1;

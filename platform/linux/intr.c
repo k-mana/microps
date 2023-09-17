@@ -19,7 +19,7 @@ struct irq_entry {
     void *dev;
 };
 
-/* NOTE: if you want to add/delete the entries after intr_run(), you need to protect lists with a mutex. */
+/* NOTE: if you want to add/delete the entries after intr_run(), you need to protect these lists with a mutex. */
 static struct irq_entry *irqs;
 
 static sigset_t sigmask;
@@ -41,7 +41,6 @@ intr_request_irq(unsigned int irq, int (*handler)(unsigned int irq, void *dev), 
             }
         }
     }
-
     entry = memory_alloc(sizeof(*entry));
     if (!entry) {
         errorf("memory_alloc() failure");
@@ -76,7 +75,7 @@ intr_timer_setup(struct itimerspec *interval)
     }
     if (timer_settime(id, 0, interval, NULL) == -1) {
         errorf("timer_settime: %s", strerror(errno));
-	return -1;
+        return -1;
     }
     return 0;
 }
@@ -110,7 +109,7 @@ intr_thread(void *arg)
             break;
         case SIGALRM:
             net_timer_handler();
-	    break;
+            break;
         default:
             for (entry = irqs; entry; entry = entry->next) {
                 if (entry->irq == (unsigned int)sig) {
@@ -132,7 +131,7 @@ intr_run(void)
 
     err = pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
     if (err) {
-        errorf("ptherad_sigmask() %s", strerror(err));
+        errorf("pthread_sigmask() %s", strerror(err));
         return -1;
     }
     err = pthread_create(&tid, NULL, intr_thread, NULL);

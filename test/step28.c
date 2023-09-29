@@ -81,6 +81,7 @@ setup(void)
 static void
 cleanup(void)
 {
+    sleep(1);
     net_shutdown();
 }
 

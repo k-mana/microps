@@ -235,12 +235,12 @@ ip_iface_alloc(const char *unicast, const char *netmask)
     }
     NET_IFACE(iface)->family = NET_IFACE_FAMILY_IP;
     if (ip_addr_pton(unicast, &iface->unicast) == -1) {
-        errorf("ip_addr_pton() failure, unicast=%s", unicast);
+        errorf("ip_addr_pton() failure, addr=%s", unicast);
         memory_free(iface);
         return NULL;
     }
     if (ip_addr_pton(netmask, &iface->netmask) == -1) {
-        errorf("ip_addr_pton() failure, netmask=%s", netmask);
+        errorf("ip_addr_pton() failure, addr=%s", netmask);
         memory_free(iface);
         return NULL;
     }
@@ -294,7 +294,7 @@ ip_protocol_register(uint8_t type, void (*handler)(const uint8_t *data, size_t l
 
     for (entry = protocols; entry; entry = entry->next) {
         if (entry->type == type) {
-            errorf("already registered, type=u", type);
+            errorf("already exists, type=%u", type);
             return -1;
         }
     }

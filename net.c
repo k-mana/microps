@@ -8,10 +8,6 @@
 
 #include "util.h"
 #include "net.h"
-#include "ip.h"
-#include "icmp.h"
-#include "arp.h"
-#include "udp.h"
 
 struct net_protocol {
     struct net_protocol *next;
@@ -338,6 +334,12 @@ net_shutdown(void)
     intr_shutdown();
     debugf("shutting down");
 }
+
+#include "arp.h"
+#include "ip.h"
+#include "icmp.h"
+#include "udp.h"
+#include "tcp.h"
 
 int
 net_init(void)

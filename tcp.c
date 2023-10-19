@@ -257,7 +257,7 @@ tcp_output_segment(uint32_t seq, uint32_t ack, uint8_t flg, uint16_t wnd, uint8_
     pseudo.len = hton16(total);
     psum = ~cksum16((uint16_t *)&pseudo, sizeof(pseudo), 0);
     hdr->sum = cksum16((uint16_t *)hdr, total, psum);
-    debugf("%s => %s, len=%zu (payload=%zu)",
+    debugf("%s => %s, len=%u (payload=%zu)",
         ip_endpoint_ntop(local, ep1, sizeof(ep1)),
         ip_endpoint_ntop(foreign, ep2, sizeof(ep2)),
         total, len);
@@ -313,7 +313,7 @@ tcp_retransmit_queue_cleanup(struct tcp_pcb *pcb)
             break;
         }
         entry = queue_pop(&pcb->queue);
-        debugf("remove, seq=%u, flags=%s, len=%u", entry->seq, tcp_flg_ntoa(entry->flg), entry->len);
+        debugf("remove, seq=%u, flags=%s, len=%zu", entry->seq, tcp_flg_ntoa(entry->flg), entry->len);
         memory_free(entry);
     }
     return;
